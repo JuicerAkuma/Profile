@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JuicerAkuma</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f27 100%), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1950&q=80');
+      background-blend-mode: multiply;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-size: cover;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: rgba(22, 27, 34, 0.95);
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 360px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      text-align: center;
+      backdrop-filter: blur(4px);
+      position: relative;
+    }
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+    }
+    .avatar-decoration {
+      position: absolute;
+      top: -12px;
+      left: -12px;
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+    }
+    .username {
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: linear-gradient(to right, darkred, black, darkred);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .discriminator {
+      color: #8b949e;
+    }
+    .tag {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      color: #58a6ff;
+    }
+    .icons {
+      margin-top: 1rem;
+    }
+    .icons img {
+      width: 48px;
+      height: 48px;
+      margin: 0.25rem;
+    }
+    .activity {
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+    .song-activity {
+      display: flex;
+      align-items: center;
+      background: #2c2f33;
+      border-radius: 8px;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .song-activity img {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      margin-right: 0.75rem;
+      object-fit: cover;
+    }
+    .song-activity-details h4 {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+      color: #fff;
+    }
+    .song-activity-details p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #b1b1b1;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="avatar-wrapper">
+      <img id="avatar" class="avatar" src="" alt="Avatar">
+      <img id="avatarDecoration" class="avatar-decoration" src="" alt="Decoration" style="display:none" />
+    </div>
+    <div class="username" id="username"></div>
+    <div class="discriminator" id="discriminator"></div>
+    <div class="tag" id="clanTag"></div>
+    <div class="icons" id="statusIcons"></div>
+    <div class="activity" id="activity"></div>
+  </div>
+
+  <script>
+    async function fetchStatusImages() {
+      const lanyardUrl = "https://api.lanyard.rest/v1/users/1169111190824308768";
+      const statusJsonUrl = "https://kirkamiddlemenscripts.github.io/DisocrdBot/Status.json";
+
+      try {
+        const [lanyardRes, statusJsonRes] = await Promise.all([
+          fetch(lanyardUrl),
+          fetch(statusJsonUrl)
+        ]);
+
+        const lanyardData = await lanyardRes.json();
+        const statusData = await statusJsonRes.json();
+
+        const user = lanyardData.data;
+        const discordUser = user.discord_user;
+
+        if (discordUser.avatar) {
+          document.getElementById("avatar").src = `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.webp?size=128`;
+        }
+        if (discordUser.global_name || discordUser.username) {
+          document.getElementById("username").textContent = discordUser.global_name || discordUser.username;
+        }
+        if (discordUser.discriminator) {
+          document.getElementById("discriminator").textContent = `#${discordUser.discriminator}`;
+        }
+        if (discordUser.clan?.tag) {
+          document.getElementById("clanTag").textContent = `[${discordUser.clan.tag}]`;
+        }
+
+        if (discordUser.avatar_decoration_data?.asset) {
+          const decoration = document.getElementById("avatarDecoration");
+          decoration.src = `https://cdn.discordapp.com/avatar-decoration-presets/${discordUser.avatar_decoration_data.asset}.png`;
+          decoration.style.display = "block";
+        }
+
+        const platformKeys = ["web", "desktop", "mobile"];
+        const platformStatus = [
+          user.active_on_discord_web,
+          user.active_on_discord_desktop,
+          user.active_on_discord_mobile
+        ];
+        const status = user.discord_status;
+
+        const container = document.getElementById("statusIcons");
+        container.innerHTML = "";
+
+        platformKeys.forEach((platform, i) => {
+          const active = platformStatus[i];
+          const key = `active_on_discord_${platform}_${status}`;
+          const emojiData = statusData.discord_status?.[key]?.[active];
+          if (emojiData && emojiData.startsWith("<:") && emojiData.includes(":")) {
+            const parts = emojiData.split(":");
+            const emojiId = parts[2].replace(">", "");
+            const emojiUrl = `https://cdn.discordapp.com/emojis/${emojiId}.webp`;
+            const img = document.createElement("img");
+            img.src = emojiUrl;
+            img.alt = `${platform} icon`;
+            container.appendChild(img);
+          }
+        });
+
+        const activityDiv = document.getElementById("activity");
+        const activities = user.activities || [];
+
+        const customStatus = activities.find(a => a.type === 4);
+        if (customStatus) {
+          activityDiv.innerHTML += `<h4>${customStatus.name}</h4><p>${customStatus.state || ''}</p>`;
+        }
+
+        const soundActivity = activities.filter(a => a.type === 2 && a.assets);
+        soundActivity.forEach(act => {
+          const imgUrl = act.assets.large_image.replace("mp:external/", "https://media.discordapp.net/external/").replace(/https?:\/\//, "");
+          const fullImgUrl = imgUrl.startsWith("https://") ? imgUrl : `https://${imgUrl}`;
+
+          activityDiv.innerHTML += `
+            <div class="song-activity">
+              <img src="${fullImgUrl}" alt="Activity Image">
+              <div class="song-activity-details">
+                <h4>${act.name}</h4>
+                <p>${act.details || ''} - ${act.state || ''}</p>
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        document.getElementById("statusIcons").textContent = "Error loading status.";
+      }
+    }
+
+    fetchStatusImages();
+  </script>
+</body>
+</html>
