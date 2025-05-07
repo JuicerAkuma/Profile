@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JuicerAkuma Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/JuicerAkuma/Profile/refs/heads/main/98.css">
+  <style>
+    body {
+      background: #008080;
+      font-family: 'Press Start 2P', cursive;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .win93-card, .console-app {
+      width: 320px;
+      border: 2px solid #000;
+      background: #c0c0c0;
+      box-shadow: 4px 4px #000;
+      font-size: 10px;
+      position: absolute;
+      top: 60px;
+      left: 60px;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .win93-card.maximized, .console-app.maximized {
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      font-size: 18px;
+    }
+
+    .win93-title-bar {
+      background: #000080;
+      color: white;
+      padding: 2px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 24px;
+      cursor: move;
+    }
+
+    .title {
+      font-weight: bold;
+    }
+
+    .win93-buttons {
+      display: flex;
+      gap: 2px;
+    }
+
+    .win93-buttons .btn {
+      background: silver;
+      border: 2px outset #fff;
+      box-shadow: inset -1px -1px #000;
+      font-weight: bold;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      text-align: center;
+      cursor: pointer;
+      font-size: 10px;
+      line-height: 14px;
+    }
+
+    .win93-card.maximized .win93-buttons .btn,
+    .console-app.maximized .win93-buttons .btn {
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+    }
+
+    .win93-content {
+      display: flex;
+      padding: 10px;
+      background: white;
+      border-top: 2px ridge #fff;
+      border-left: 2px ridge #fff;
+      border-right: 2px groove #000;
+      border-bottom: 2px groove #000;
+      height: calc(100% - 24px);
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .avatar-container {
+      position: relative;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      margin-right: 10px;
+      border: 2px inset #000;
+      transition: all 0.3s ease;
+    }
+
+    .avatar-container .avatar {
+      border: 2px inset #000;
+    }
+
+    .avatar-decoration {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+      border-radius: 50%;
+    }
+
+    .win93-card.maximized .avatar {
+      width: 140px;
+      height: 140px;
+      margin-right: 20px;
+    }
+
+    .info p {
+      margin: 4px 0;
+      line-height: 1.5;
+    }
+
+    .win93-card.maximized .info p {
+      margin: 10px 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .desktop-icon {
+      display: inline-block;
+      text-align: center;
+      color: white;
+      font-size: 10px;
+      cursor: pointer;
+      width: 60px;
+      margin-right: 10px;
+    }
+
+    .desktop-icon img {
+      width: 48px;
+      height: 48px;
+      display: block;
+      margin: 0 auto 4px;
+    }
+
+    .console-body {
+      background: black;
+      color: #00ff00;
+      padding: 10px;
+      height: calc(100% - 24px);
+      overflow-y: auto;
+      font-size: 10px;
+      white-space: pre-wrap;
+    }
+
+    .console-input {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: monospace;
+      background: black;
+      color: #00ff00;
+      border: none;
+      outline: none;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading GIF -->
+  <div id="loading" class="loading">
+    <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." width="100" height="100">
+  </div>
+
+  <!-- Desktop Icons -->
+  <div class="desktop-icon" onclick="openCard()">
+    <img src="https://98.js.org/images/icons/my-computer-48x48.png" alt="Profile">
+    <span>Profile</span>
+  </div>
+  <div class="desktop-icon" onclick="openConsole()">
+    <img src="https://98.js.org/images/icons/msdos-32x32.png" alt="Console">
+    <span>Console</span>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="win93-card hidden" id="profileCard">
+    <div class="win93-title-bar" id="titleBar">
+      <span class="title">JuicerAkuma.exe</span>
+      <div class="win93-buttons">
+        <button class="btn" onclick="minimizeCard()">&#x2212;</button>
+        <button class="btn" onclick="maximizeCard()">&#x25A1;</button>
+        <button class="btn" onclick="closeCard()">&#x2715;</button>
+      </div>
+    </div>
+    <div class="win93-content" id="cardContent">
+      <div class="avatar-container">
+        <img src="https://via.placeholder.com/80" class="avatar" alt="avatar" id="avatar">
+        <div class="avatar-decoration hidden" id="avatarDecoration"></div>
+      </div>
+      <div class="info">
+        <p><strong>Username:</strong> <span id="discordUsername">Loading...</span></p>
+        <p><strong>Short ID:</strong> Y2OOB2</p>
+        <p><strong>Status:</strong> <span id="discordStatus">Loading...</span></p>
+        <p><strong>Now Playing:</strong> <span id="discordActivity">Loading...</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Console App -->
+  <div class="console-app hidden" id="consoleApp">
+    <div class="win93-title-bar" id="consoleTitleBar">
+      <span class="title">CMD.EXE</span>
+      <div class="win93-buttons">
+        <button class="btn" onclick="toggleConsoleSize()">&#x25A1;</button>
+        <button class="btn" onclick="closeConsole()">&#x2715;</button>
+      </div>
+    </div>
+    <div class="console-body" id="consoleBody"></div>
+    <input class="console-input" id="consoleInput" onkeydown="handleConsole(event)">
+  </div>
+
+  <script>
+    function minimizeCard() {
+      document.getElementById('cardContent').classList.toggle('hidden');
+    }
+
+    function maximizeCard() {
+      const card = document.getElementById('profileCard');
+      card.classList.toggle('maximized');
+    }
+
+    function closeCard() {
+      document.getElementById('profileCard').classList.add('hidden');
+    }
+
+    function openCard() {
+      document.getElementById('loading').style.display = 'block';
+      const audio = new Audio('https://98.js.org/audio/LOGOFF.WAV');
+      audio.play();
+      audio.onended = function () {
+        document.getElementById('loading').style.display = 'none';
+        const card = document.getElementById('profileCard');
+        card.classList.remove('hidden');
+        updateDiscordProfile();
+      };
+    }
+
+    function openConsole() {
+      document.getElementById('consoleApp').classList.remove('hidden');
+      document.getElementById('consoleInput').focus();
+    }
+
+    function closeConsole() {
+      document.getElementById('consoleApp').classList.add('hidden');
+    }
+
+    function toggleConsoleSize() {
+      document.getElementById('consoleApp').classList.toggle('maximized');
+    }
+
+    function handleConsole(e) {
+      if (e.key === 'Enter') {
+        const input = e.target.value;
+        const output = evalSafely(input);
+        const consoleBody = document.getElementById('consoleBody');
+        consoleBody.textContent += `\n> ${input}\n${output}`;
+        e.target.value = '';
+        consoleBody.scrollTop = consoleBody.scrollHeight;
+      }
+    }
+
+    function evalSafely(input) {
+      try {
+        return eval(input);
+      } catch (err) {
+        return err.toString();
+      }
+    }
+
+    function enableDragging(cardId, barId) {
+      const card = document.getElementById(cardId);
+      const bar = document.getElementById(barId);
+      let isDragging = false;
+      let offsetX, offsetY;
+
+      bar.addEventListener('mousedown', (e) => {
+        if (card.classList.contains('maximized')) return;
+        isDragging = true;
+        const rect = card.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        document.body.style.userSelect = 'none';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          card.style.left = `${e.clientX - offsetX}px`;
+          card.style.top = `${e.clientY - offsetY}px`;
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.body.style.userSelect = '';
+      });
+    }
+
+    enableDragging('profileCard', 'titleBar');
+    enableDragging('consoleApp', 'consoleTitleBar');
+
+    function updateDiscordProfile() {
+      fetch("https://api.lanyard.rest/v1/users/1169111190824308768")
+        .then(res => res.json())
+        .then(data => {
+          const d = data.data;
+          document.getElementById("discordUsername").textContent = d.discord_user.username;
+          document.getElementById("discordStatus").textContent = d.discord_status;
+
+          // Avatar update
+          const avatarURL = `https://cdn.discordapp.com/avatars/${d.discord_user.id}/${d.discord_user.avatar}.png`;
+          document.getElementById("avatar").src = avatarURL;
+
+          // Handle avatar decoration
+          if (d.avatar_decoration_data) {
+            const decoration = document.getElementById("avatarDecoration");
+            decoration.classList.remove("hidden");
+            const decorationAsset = `https://cdn.discordapp.com/avatar-decoration-presets/${d.avatar_decoration_data.asset}.png`;
+            decoration.style.backgroundImage = `url(${decorationAsset})`;
+          } else {
+            document.getElementById("avatarDecoration").classList.add("hidden");
+          }
+
+          // Activity logic
+          const activities = d.activities;
+          let display = "None";
+          let previewImage = "";
+
+          const type2 = activities.find(a => a.type === 2);
+          const type1 = activities.find(a => a.type === 1);
+          const type4 = activities.find(a => a.type === 4);
+
+          if (type2) {
+            display = `${type2.name}: ${type2.details || "Unknown"} (${type2.state || "Unknown"})`;
+            if (type2.assets && type2.assets.large_image) {
+              let img = type2.assets.large_image;
+              // Handle external SoundCloud links
+              if (img.startsWith("mp:external/")) {
+                img = img.replace("mp:external/", "https://media.discordapp.net/external/");
+                img = img.replace(/\/https?:/, "/https:/");
+              } else {
+                img = `https://cdn.discordapp.com/app-assets/${type2.application_id}/${img}.png`;
+              }
+              previewImage = `<img src="${img}" alt="activity preview" style="margin-top:10px; max-width:100px; border:2px inset #000;">`;
+            }
+          } else if (type1) {
+            display = `Streaming: ${type1.name}`;
+          } else if (type4) {
+            display = type4.state || "Custom Status";
+          }
+
+          document.getElementById("discordActivity").innerHTML = display + (previewImage ? `<br>${previewImage}` : "");
+        })
+        .catch(err => {
+          document.getElementById("discordUsername").textContent = "Error";
+          document.getElementById("discordStatus").textContent = "Unavailable";
+          document.getElementById("discordActivity").textContent = "None";
+          console.error("Failed to fetch Discord data", err);
+        });
+    }
+  </script>
+</body>
+</html>
